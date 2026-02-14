@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {}
+    "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {}
   },
   "projects": {
-    "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
+    "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj",
+        "projectUniqueName": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj",
         "projectName": "BibliothequePersonnelle.Core",
-        "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj",
+        "projectPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj",
         "packagesPath": "C:\\Users\\boula\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\obj\\",
+        "outputPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

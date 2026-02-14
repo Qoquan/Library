@@ -1,0 +1,16 @@
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\bin\Debug\net9.0\BibliothequePersonnelle.Infrastructure.deps.json
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\bin\Debug\net9.0\BibliothequePersonnelle.Infrastructure.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\bin\Debug\net9.0\BibliothequePersonnelle.Infrastructure.pdb
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\bin\Debug\net9.0\BibliothequePersonnelle.Core.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\bin\Debug\net9.0\BibliothequePersonnelle.Core.pdb
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.csproj.AssemblyReference.cache
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.AssemblyInfoInputs.cache
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.AssemblyInfo.cs
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.csproj.CoreCompileInputs.cache
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.sourcelink.json
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\Biblioth.7EC0514B.Up2Date
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\refint\BibliothequePersonnelle.Infrastructure.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\BibliothequePersonnelle.Infrastructure.pdb
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Infrastructure\obj\Debug\net9.0\ref\BibliothequePersonnelle.Infrastructure.dll

@@ -1,0 +1,12 @@
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\bin\Debug\net9.0\BibliothequePersonnelle.Core.deps.json
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\bin\Debug\net9.0\BibliothequePersonnelle.Core.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\bin\Debug\net9.0\BibliothequePersonnelle.Core.pdb
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.GeneratedMSBuildEditorConfig.editorconfig
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.AssemblyInfoInputs.cache
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.AssemblyInfo.cs
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.csproj.CoreCompileInputs.cache
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.sourcelink.json
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\refint\BibliothequePersonnelle.Core.dll
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\BibliothequePersonnelle.Core.pdb
+c:\Users\boula\Desktop\Loïc\bac\Algo\Library\BibliothequePersonnelle.Core\obj\Debug\net9.0\ref\BibliothequePersonnelle.Core.dll
