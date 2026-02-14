@@ -432,6 +432,16 @@
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
         }
+      },
+      "BibliothequePersonnelle.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/BibliothequePersonnelle.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BibliothequePersonnelle.Core.dll": {}
+        }
       }
     },
     "net9.0/browser-wasm": {
@@ -864,6 +874,16 @@
         "build": {
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.props": {},
           "build/Microsoft.NET.Sdk.WebAssembly.Pack.targets": {}
+        }
+      },
+      "BibliothequePersonnelle.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "compile": {
+          "bin/placeholder/BibliothequePersonnelle.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/BibliothequePersonnelle.Core.dll": {}
         }
       }
     }
@@ -1746,10 +1766,16 @@
         "tools/net9.0/Microsoft.NET.Sdk.WebAssembly.Pack.Tasks.dll",
         "tools/net9.0/Microsoft.NET.WebAssembly.Webcil.dll"
       ]
+    },
+    "BibliothequePersonnelle.Core/1.0.0": {
+      "type": "project",
+      "path": "../BibliothequePersonnelle.Core/BibliothequePersonnelle.Core.csproj",
+      "msbuildProject": "../BibliothequePersonnelle.Core/BibliothequePersonnelle.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
+      "BibliothequePersonnelle.Core >= 1.0.0",
       "Microsoft.AspNetCore.Components.WebAssembly >= 9.0.13",
       "Microsoft.AspNetCore.Components.WebAssembly.DevServer >= 9.0.13",
       "Microsoft.NET.ILLink.Tasks >= 9.0.13",
@@ -1788,7 +1814,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
+              "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {
