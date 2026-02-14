@@ -69,10 +69,11 @@ public class LivreRepository : ILivreRepository
     public async Task<IEnumerable<Livre>> SearchAsync(string searchTerm)
     {
         var lowerSearchTerm = searchTerm.ToLower();
-        return await _context.Livres.Where(l => l.Titre.ToLower().Contains(lowerSearchTerm) || 
-        l.Auteur.ToLower().Contains(lowerSearchTerm) ||
-        (l.ISBN != null && l.ISBN.Contains(searchTerm)))
-        .ToListAsync();
+        return await _context.Livres
+            .Where(l => l.Titre.ToLower().Contains(lowerSearchTerm) ||
+                       l.Auteur.ToLower().Contains(lowerSearchTerm) ||
+                       (l.ISBN != null && l.ISBN.Contains(searchTerm)))
+            .ToListAsync();
     }
 
     Task ILivreRepository.UpdateAsync(int id, Livre livre)
