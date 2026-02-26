@@ -1207,8 +1207,8 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
-              "projectPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj"
+            "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
+              "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj"
             }
           }
         }

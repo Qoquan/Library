@@ -2761,11 +2761,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
+      "projectUniqueName": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
       "projectName": "BibliothequePersonnelle.Tests",
-      "projectPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
+      "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
       "packagesPath": "C:\\Users\\boula\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\obj\\",
+      "outputPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2787,11 +2787,11 @@
         "net9.0": {
           "targetAlias": "net9.0",
           "projectReferences": {
-            "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.API\\BibliothequePersonnelle.API.csproj": {
-              "projectPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.API\\BibliothequePersonnelle.API.csproj"
+            "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.API\\BibliothequePersonnelle.API.csproj": {
+              "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.API\\BibliothequePersonnelle.API.csproj"
             },
-            "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
-              "projectPath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj"
+            "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj": {
+              "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Core\\BibliothequePersonnelle.Core.csproj"
             },
             "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Infrastructure\\BibliothequePersonnelle.Infrastructure.csproj": {
               "projectPath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Infrastructure\\BibliothequePersonnelle.Infrastructure.csproj"

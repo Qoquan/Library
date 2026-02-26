@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "7ipTfBp2EMo=",
+  "dgSpecHash": "DgUT3SFzwoE=",
   "success": true,
-  "projectFilePath": "c:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
+  "projectFilePath": "C:\\Users\\boula\\Desktop\\Loïc\\bac\\Algo\\Library\\BibliothequePersonnelle.Tests\\BibliothequePersonnelle.Tests.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\boula\\.nuget\\packages\\castle.core\\5.1.1\\castle.core.5.1.1.nupkg.sha512",
     "C:\\Users\\boula\\.nuget\\packages\\coverlet.collector\\6.0.2\\coverlet.collector.6.0.2.nupkg.sha512",
