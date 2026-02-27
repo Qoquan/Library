@@ -1,0 +1,238 @@
+@* =============================================================
+   Fichier : Library.Web/Pages/BookForm.razor
+   Rôle    : Formulaire de création ET modification d'un livre.
+             Une seule page gère les deux cas (add/edit).
+             Utilise EditForm et DataAnnotationsValidator de Blazor.
+   Routes  : /books/add  et  /books/edit/{id}
+   ============================================================= *@
+
+@page "/books/add"
+@page "/books/edit/{Id:int}"
+@inject BookApiService BookService
+@inject NavigationManager NavManager
+
+<PageTitle>@(isEdit ? "Modifier" : "Ajouter") un livre — Library</PageTitle>
+
+<!-- En-tête -->
+<div class="d-flex align-items-center mb-4">
+    <a href="/books" class="btn btn-outline-secondary me-3">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <h1 class="h3 fw-bold mb-0">
+        <i class="bi @(isEdit ? "bi-pencil-square" : "bi-plus-circle") text-primary me-2"></i>
+        @(isEdit ? "Modifier le livre" : "Ajouter un livre")
+    </h1>
+</div>
+
+<!-- Message d'erreur/succès -->
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible">
+        @message
+        <button type="button" class="btn-close" @onclick="() => message = string.Empty"></button>
+    </div>
+}
+
+@if (isLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="mt-2 text-muted">Chargement...</p>
+    </div>
+}
+else
+{
+    <!-- Formulaire Blazor avec validation -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+            <EditForm Model="@book" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+
+                <div class="row g-3">
+                    <!-- Titre (obligatoire) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Titre <span class="text-danger">*</span>
+                        </label>
+                        <InputText class="form-control" @bind-Value="book.Title"
+                                   placeholder="Titre du livre" />
+                        <ValidationMessage For="@(() => book.Title)" class="text-danger small" />
+                    </div>
+
+                    <!-- Auteur (obligatoire) -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Auteur <span class="text-danger">*</span>
+                        </label>
+                        <InputText class="form-control" @bind-Value="book.Author"
+                                   placeholder="Nom de l'auteur" />
+                        <ValidationMessage For="@(() => book.Author)" class="text-danger small" />
+                    </div>
+
+                    <!-- ISBN -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">ISBN</label>
+                        <InputText class="form-control" @bind-Value="book.ISBN"
+                                   placeholder="978-..." />
+                    </div>
+
+                    <!-- Année de publication -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Année de publication</label>
+                        <InputNumber class="form-control" @bind-Value="book.PublishedYear"
+                                     placeholder="ex: 2023" />
+                        <ValidationMessage For="@(() => book.PublishedYear)" class="text-danger small" />
+                    </div>
+
+                    <!-- Genre -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Genre</label>
+                        <InputSelect class="form-select" @bind-Value="book.Genre">
+                            <option value="">-- Choisir un genre --</option>
+                            <option value="Roman">Roman</option>
+                            <option value="Fantasy">Fantasy</option>
+                            <option value="Science-Fiction">Science-Fiction</option>
+                            <option value="Dystopie">Dystopie</option>
+                            <option value="Policier">Policier</option>
+                            <option value="Biographie">Biographie</option>
+                            <option value="Histoire">Histoire</option>
+                            <option value="Science">Science</option>
+                            <option value="Philosophie">Philosophie</option>
+                            <option value="Conte">Conte</option>
+                            <option value="Autre">Autre</option>
+                        </InputSelect>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Description / Résumé</label>
+                        <InputTextArea class="form-control" @bind-Value="book.Description"
+                                       rows="3" placeholder="Résumé du livre..." />
+                    </div>
+
+                    <!-- URL de couverture -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">URL de la couverture</label>
+                        <InputText class="form-control" @bind-Value="book.CoverUrl"
+                                   placeholder="https://..." />
+                        @if (!string.IsNullOrEmpty(book.CoverUrl))
+                        {
+                            <img src="@book.CoverUrl" class="mt-2 rounded"
+                                 style="max-height: 120px;"
+                                 alt="Aperçu couverture"
+                                 onerror="this.style.display='none'" />
+                        }
+                    </div>
+
+                    <!-- Disponibilité -->
+                    <div class="col-12">
+                        <div class="form-check form-switch">
+                            <InputCheckbox class="form-check-input" @bind-Value="book.IsAvailable" id="available" />
+                            <label class="form-check-label" for="available">
+                                Livre disponible à l'emprunt
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons -->
+                <div class="d-flex gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                        }
+                        else
+                        {
+                            <i class="bi @(isEdit ? "bi-check-circle" : "bi-plus-circle") me-2"></i>
+                        }
+                        @(isEdit ? "Enregistrer les modifications" : "Ajouter le livre")
+                    </button>
+                    <a href="/books" class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    // -------------------------------------------------------
+    // Paramètre de route (null = ajout, nombre = modification)
+    // -------------------------------------------------------
+    [Parameter] public int? Id { get; set; }
+
+    // -------------------------------------------------------
+    // Variables d'état
+    // -------------------------------------------------------
+    private Book book = new() { IsAvailable = true };
+    private bool isEdit = false;
+    private bool isLoading = false;
+    private bool isSaving = false;
+    private string message = string.Empty;
+    private bool isError = false;
+
+    // -------------------------------------------------------
+    // Chargement : si ID fourni = mode édition
+    // -------------------------------------------------------
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            isEdit = true;
+            isLoading = true;
+
+            var existing = await BookService.GetBookByIdAsync(Id.Value);
+            if (existing != null)
+            {
+                book = existing;
+            }
+            else
+            {
+                message = "Livre introuvable.";
+                isError = true;
+            }
+
+            isLoading = false;
+        }
+    }
+
+    // -------------------------------------------------------
+    // Soumission du formulaire (création ou mise à jour)
+    // -------------------------------------------------------
+    private async Task HandleSubmit()
+    {
+        isSaving = true;
+        message = string.Empty;
+
+        if (isEdit && Id.HasValue)
+        {
+            // Mode modification
+            var updated = await BookService.UpdateBookAsync(Id.Value, book);
+            if (updated != null)
+            {
+                NavManager.NavigateTo("/books");
+            }
+            else
+            {
+                message = "Erreur lors de la mise à jour du livre.";
+                isError = true;
+            }
+        }
+        else
+        {
+            // Mode création
+            var created = await BookService.CreateBookAsync(book);
+            if (created != null)
+            {
+                NavManager.NavigateTo("/books");
+            }
+            else
+            {
+                message = "Erreur lors de la création du livre. Vérifiez que l'API est démarrée.";
+                isError = true;
+            }
+        }
+
+        isSaving = false;
+    }
+}

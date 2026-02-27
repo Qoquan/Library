@@ -1,0 +1,12 @@
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\bin\Debug\net9.0\Library.Shared.deps.json
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\bin\Debug\net9.0\Library.Shared.dll
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\bin\Debug\net9.0\Library.Shared.pdb
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.AssemblyInfoInputs.cache
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.AssemblyInfo.cs
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.csproj.CoreCompileInputs.cache
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.sourcelink.json
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.dll
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\refint\Library.Shared.dll
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\Library.Shared.pdb
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Shared\obj\Debug\net9.0\ref\Library.Shared.dll

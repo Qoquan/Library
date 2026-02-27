@@ -1,0 +1,63 @@
+﻿@* =============================================================
+   Fichier : Library.Web/Shared/MainLayout.razor
+   Rôle    : Layout principal de l'application.
+             Contient la barre de navigation et le conteneur.
+   ============================================================= *@
+
+@inherits LayoutComponentBase
+
+<!-- Barre de navigation principale -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+    <div class="container">
+        <!-- Logo / Titre -->
+        <a class="navbar-brand fw-bold" href="/">
+            <i class="bi bi-book-half me-2"></i>Library
+        </a>
+
+        <!-- Bouton mobile -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Liens de navigation -->
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/" Match="NavLinkMatch.All">
+                        <i class="bi bi-house me-1"></i>Accueil
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/books">
+                        <i class="bi bi-journal-text me-1"></i>Mes Livres
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/books/add">
+                        <i class="bi bi-plus-circle me-1"></i>Ajouter
+                    </NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/search-external">
+                        <i class="bi bi-search me-1"></i>Recherche OpenLibrary
+                    </NavLink>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Contenu principal -->
+<main class="container my-4">
+    @Body
+</main>
+
+<!-- Footer -->
+<footer class="bg-dark text-white text-center py-3 mt-5">
+    <small>
+        <i class="bi bi-book me-1"></i>Library — Projet POO 5IOBJ-1
+        &nbsp;|&nbsp;
+        Données locales + API OpenLibrary
+    </small>
+</footer>
+

@@ -1,0 +1,225 @@
+@* =============================================================
+   Fichier : Library.Web/Pages/SearchExternal.razor
+   Rôle    : Page de recherche dans l'API externe OpenLibrary.
+             Permet de chercher des livres en ligne et de les
+             importer dans la bibliothèque locale.
+   Route   : /search-external
+   ============================================================= *@
+
+@page "/search-external"
+@inject BookApiService BookService
+
+<PageTitle>Recherche OpenLibrary — Library</PageTitle>
+
+<!-- En-tête -->
+<div class="mb-4">
+    <h1 class="h3 fw-bold">
+        <i class="bi bi-cloud-search text-info me-2"></i>Recherche OpenLibrary
+    </h1>
+    <p class="text-muted">
+        Recherchez parmi des millions de livres via l'API publique
+        <a href="https://openlibrary.org" target="_blank" rel="noopener">OpenLibrary</a>
+        et importez-les dans votre bibliothèque.
+    </p>
+</div>
+
+<!-- Barre de recherche -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+                <i class="bi bi-search text-info"></i>
+            </span>
+            <input type="text"
+                   class="form-control border-start-0 ps-0 border-end-0"
+                   placeholder="Titre, auteur, sujet..."
+                   @bind="searchQuery"
+                   @bind:event="oninput"
+                   @onkeyup="OnSearchKeyUp" />
+            <button class="btn btn-info text-white" @onclick="Search" disabled="@isSearching">
+                @if (isSearching)
+                {
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                }
+                else
+                {
+                    <i class="bi bi-search me-2"></i>
+                }
+                Rechercher
+            </button>
+        </div>
+        <small class="text-muted mt-2 d-block">
+            <i class="bi bi-info-circle me-1"></i>
+            Connexion internet requise. Résultats fournis par OpenLibrary.org.
+        </small>
+    </div>
+</div>
+
+<!-- Message de retour -->
+@if (!string.IsNullOrEmpty(message))
+{
+    <div class="alert @(isError ? "alert-danger" : "alert-success") alert-dismissible">
+        <i class="bi @(isError ? "bi-exclamation-triangle" : "bi-check-circle") me-2"></i>
+        @message
+        <button class="btn-close" @onclick="() => message = string.Empty"></button>
+    </div>
+}
+
+<!-- Résultats -->
+@if (hasSearched && !isSearching)
+{
+    @if (!results.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-search text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+            <h4 class="mt-3 text-muted">Aucun résultat</h4>
+            <p class="text-muted">
+                Aucun livre trouvé pour "<strong>@lastQuery</strong>".
+                Essayez des mots-clés différents.
+            </p>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted small mb-3">
+            <strong>@results.Count</strong> résultat(s) pour "<strong>@lastQuery</strong>"
+        </p>
+
+        <div class="row g-3">
+            @foreach (var book in results)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 border-0 shadow-sm">
+                        @if (!string.IsNullOrEmpty(book.CoverUrl))
+                        {
+                            <img src="@book.CoverUrl"
+                                 class="card-img-top"
+                                 style="height: 160px; object-fit: cover;"
+                                 alt="Couverture"
+                                 onerror="this.style.display='none'" />
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                                 style="height: 100px;">
+                                <i class="bi bi-book text-muted" style="font-size: 2.5rem;"></i>
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title fw-bold mb-1">@book.Title</h6>
+                            <p class="text-muted small mb-1">
+                                <i class="bi bi-person me-1"></i>@book.Author
+                            </p>
+                            @if (book.PublishedYear.HasValue)
+                            {
+                                <p class="text-muted small mb-1">
+                                    <i class="bi bi-calendar me-1"></i>@book.PublishedYear
+                                </p>
+                            }
+                            @if (!string.IsNullOrEmpty(book.Genre))
+                            {
+                                <span class="badge bg-secondary mb-2">@book.Genre</span>
+                            }
+                            @if (!string.IsNullOrEmpty(book.ISBN))
+                            {
+                                <p class="text-muted small mb-2">ISBN : @book.ISBN</p>
+                            }
+
+                            <!-- Bouton d'import -->
+                            <div class="mt-auto">
+                                @if (importedIds.Contains(book.Title + book.Author))
+                                {
+                                    <button class="btn btn-sm btn-success w-100" disabled>
+                                        <i class="bi bi-check-circle me-2"></i>Importé !
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-info w-100"
+                                            @onclick="() => ImportBook(book)"
+                                            disabled="@importingIds.Contains(book.Title + book.Author)">
+                                        @if (importingIds.Contains(book.Title + book.Author))
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-cloud-download me-2"></i>
+                                        }
+                                        Importer dans ma bibliothèque
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    // -------------------------------------------------------
+    // Variables d'état
+    // -------------------------------------------------------
+    private string searchQuery = string.Empty;
+    private string lastQuery = string.Empty;
+    private List<Book> results = new();
+    private bool isSearching = false;
+    private bool hasSearched = false;
+    private string message = string.Empty;
+    private bool isError = false;
+
+    // Suivi des livres en cours d'import et déjà importés
+    private HashSet<string> importingIds = new();
+    private HashSet<string> importedIds = new();
+
+    // -------------------------------------------------------
+    // Recherche dans OpenLibrary
+    // -------------------------------------------------------
+    private async Task Search()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+
+        isSearching = true;
+        hasSearched = false;
+        message = string.Empty;
+        lastQuery = searchQuery;
+
+        results = await BookService.SearchOpenLibraryAsync(searchQuery);
+
+        isSearching = false;
+        hasSearched = true;
+    }
+
+    private async Task OnSearchKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await Search();
+    }
+
+    // -------------------------------------------------------
+    // Import d'un livre dans la base locale
+    // -------------------------------------------------------
+    private async Task ImportBook(Book book)
+    {
+        var key = book.Title + book.Author;
+        importingIds.Add(key);
+
+        var imported = await BookService.ImportFromOpenLibraryAsync(book);
+
+        importingIds.Remove(key);
+
+        if (imported != null)
+        {
+            importedIds.Add(key);
+            message = $"✅ '{book.Title}' a été importé dans votre bibliothèque !";
+            isError = false;
+        }
+        else
+        {
+            message = "Erreur lors de l'import. Vérifiez que l'API est démarrée.";
+            isError = true;
+        }
+    }
+}
