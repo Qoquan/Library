@@ -1,16 +1,9 @@
 // =============================================================
-// Fichier : Library.API/Program.cs — VERSION .NET 9
-// Rôle    : Point d'entrée de l'API REST.
-//
-// Changements vs .NET 8 :
-//   ❌ Swashbuckle.AspNetCore       → retiré (non maintenu)
-//   ✅ Microsoft.AspNetCore.OpenApi → OpenAPI natif .NET 9
-//   ✅ Scalar.AspNetCore            → UI moderne remplaçant Swagger UI
-//   ✅ public partial class Program → requis pour WebApplicationFactory (tests)
+// Fichier : Library.API/Program.cs
+// Rôle    : Point d'entrée de l'API REST (.NET 9)
 // =============================================================
 
 using Microsoft.EntityFrameworkCore;
-using Scalar.AspNetCore;
 using Library.API.Data;
 using Library.API.Services;
 
@@ -22,10 +15,16 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-// ✅ .NET 9 : OpenAPI natif (remplace AddSwaggerGen + AddEndpointsApiExplorer)
-builder.Services.AddOpenApi(options =>
+// Swagger / OpenAPI
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
 {
-    options.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0;
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Library API",
+        Version = "v1",
+        Description = "API REST interne pour la gestion de la bibliothèque."
+    });
 });
 
 // Base de données SQLite via Entity Framework Core 9
@@ -74,16 +73,11 @@ using (var scope = app.Services.CreateScope())
 // -------------------------------------------------------
 if (app.Environment.IsDevelopment())
 {
-    // ✅ .NET 9 : expose /openapi/v1.json
-    app.MapOpenApi();
-
-    // ✅ .NET 9 : Scalar remplace Swagger UI
-    // Accessible sur : http://localhost:5000/scalar/v1
-    app.MapScalarApiReference(options =>
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
     {
-        options.Title = "Library API";
-        options.Theme = ScalarTheme.DeepSpace;
-        options.DefaultHttpClient = new(ScalarTarget.CSharp, ScalarClient.HttpClient);
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library API v1");
+        c.RoutePrefix = "swagger";
     });
 }
 
@@ -92,10 +86,9 @@ app.UseCors("BlazorPolicy");
 app.UseAuthorization();
 app.MapControllers();
 
-Console.WriteLine("=== Library API (.NET 9) ===");
-Console.WriteLine("Scalar UI  : http://localhost:5000/scalar/v1");
-Console.WriteLine("OpenAPI    : http://localhost:5000/openapi/v1.json");
-Console.WriteLine("API Books  : http://localhost:5000/api/books");
+Console.WriteLine("=== Library API démarrée ===");
+Console.WriteLine("Swagger : http://localhost:5000/swagger");
+Console.WriteLine("API     : http://localhost:5000/api/books");
 
 app.Run();
 
