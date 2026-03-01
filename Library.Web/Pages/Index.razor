@@ -1,193 +1,126 @@
-﻿// =============================================================
-// Fichier : Library.Web/Services/BookApiService.cs
-// Rôle    : Service HTTP appelant l'API interne depuis Blazor.
-//           Fait le lien entre les pages Blazor et l'API REST.
-//           POO : injection de HttpClient, encapsulation des appels.
-// =============================================================
+﻿@* =============================================================
+   Fichier : Library.Web/Pages/Index.razor
+   Rôle    : Page d'accueil de l'application.
+             Affiche un résumé de la bibliothèque et les actions rapides.
+   ============================================================= *@
 
-using System.Net.Http.Json;
-using Library.Shared.Models;
+@page "/"
+@inject BookApiService BookService
 
-namespace Library.Web.Services
+<PageTitle>Accueil — Library</PageTitle>
+
+<div class="row align-items-center mb-5">
+    <div class="col-md-8">
+        <h1 class="display-5 fw-bold">
+            <i class="bi bi-book-half text-primary me-3"></i>Ma Bibliothèque
+        </h1>
+        <p class="lead text-muted">
+            Gérez votre collection de livres, recherchez dans votre catalogue
+            et importez des livres depuis OpenLibrary.
+        </p>
+        <a href="/books" class="btn btn-primary btn-lg me-2">
+            <i class="bi bi-journal-text me-2"></i>Voir tous les livres
+        </a>
+        <a href="/books/add" class="btn btn-outline-primary btn-lg">
+            <i class="bi bi-plus-circle me-2"></i>Ajouter un livre
+        </a>
+    </div>
+    <div class="col-md-4 text-center d-none d-md-block">
+        <i class="bi bi-bookshelf text-primary" style="font-size: 8rem; opacity: 0.3;"></i>
+    </div>
+</div>
+
+<!-- Statistiques -->
+@if (isLoading)
 {
-    /// <summary>
-    /// Service qui communique avec l'API interne Library.API.
-    /// Toutes les opérations CRUD passent par ce service.
-    /// Utilise HttpClient (injecté) pour les appels HTTP.
-    /// </summary>
-    public class BookApiService
+    <div class="text-center py-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Chargement des statistiques...</p>
+    </div>
+}
+else
+{
+    <div class="row g-3 mb-5">
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <i class="bi bi-collection text-primary" style="font-size: 2.5rem;"></i>
+                    <h2 class="mt-2 fw-bold">@totalBooks</h2>
+                    <p class="text-muted mb-0">Livres au total</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
+                    <h2 class="mt-2 fw-bold text-success">@availableBooks</h2>
+                    <p class="text-muted mb-0">Disponibles</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <i class="bi bi-x-circle text-danger" style="font-size: 2.5rem;"></i>
+                    <h2 class="mt-2 fw-bold text-danger">@borrowedBooks</h2>
+                    <p class="text-muted mb-0">Empruntés</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Actions rapides -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-database me-2 text-primary"></i>Gestion Locale
+                </h5>
+                <p class="card-text text-muted">
+                    Ajoutez, modifiez et supprimez des livres de votre catalogue local.
+                    Les données sont stockées dans une base SQLite.
+                </p>
+                <a href="/books" class="btn btn-primary">Gérer mes livres</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="bi bi-cloud-search me-2 text-info"></i>OpenLibrary
+                </h5>
+                <p class="card-text text-muted">
+                    Recherchez des millions de livres via l'API OpenLibrary
+                    et importez-les directement dans votre bibliothèque.
+                </p>
+                <a href="/search-external" class="btn btn-info text-white">Rechercher en ligne</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    // -------------------------------------------------------
+    // Variables de l'interface
+    // -------------------------------------------------------
+    private bool isLoading = true;
+    private int totalBooks = 0;
+    private int availableBooks = 0;
+    private int borrowedBooks = 0;
+
+    // -------------------------------------------------------
+    // Chargement des statistiques au démarrage
+    // -------------------------------------------------------
+    protected override async Task OnInitializedAsync()
     {
-        // -------------------------------------------------------
-        // Dépendance injectée
-        // -------------------------------------------------------
-        private readonly HttpClient _http;
-
-        // URL de base de l'API (configurée dans appsettings.json)
-        private const string ApiBase = "api/books";
-
-        public BookApiService(HttpClient http)
-        {
-            _http = http;
-        }
-
-        // -------------------------------------------------------
-        // READ — Récupérer tous les livres
-        // -------------------------------------------------------
-        /// <summary>Récupère tous les livres depuis l'API.</summary>
-        public async Task<List<Book>> GetAllBooksAsync()
-        {
-            try
-            {
-                var books = await _http.GetFromJsonAsync<List<Book>>(ApiBase);
-                return books ?? new List<Book>();
-            }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Erreur GetAllBooks: {ex.Message}");
-                return new List<Book>();
-            }
-        }
-
-        // -------------------------------------------------------
-        // READ — Récupérer un livre par ID
-        // -------------------------------------------------------
-        /// <summary>Récupère un livre par son ID.</summary>
-        public async Task<Book?> GetBookByIdAsync(int id)
-        {
-            try
-            {
-                return await _http.GetFromJsonAsync<Book>($"{ApiBase}/{id}");
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // -------------------------------------------------------
-        // READ — Rechercher des livres
-        // -------------------------------------------------------
-        /// <summary>Recherche des livres par titre, auteur ou genre.</summary>
-        public async Task<List<Book>> SearchBooksAsync(string query)
-        {
-            try
-            {
-                var encoded = Uri.EscapeDataString(query);
-                var books = await _http.GetFromJsonAsync<List<Book>>($"{ApiBase}/search?q={encoded}");
-                return books ?? new List<Book>();
-            }
-            catch
-            {
-                return new List<Book>();
-            }
-        }
-
-        // -------------------------------------------------------
-        // CREATE — Créer un livre
-        // -------------------------------------------------------
-        /// <summary>Crée un nouveau livre via l'API.</summary>
-        public async Task<Book?> CreateBookAsync(Book book)
-        {
-            try
-            {
-                var response = await _http.PostAsJsonAsync(ApiBase, book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // -------------------------------------------------------
-        // UPDATE — Mettre à jour un livre
-        // -------------------------------------------------------
-        /// <summary>Met à jour un livre existant.</summary>
-        public async Task<Book?> UpdateBookAsync(int id, Book book)
-        {
-            try
-            {
-                var response = await _http.PutAsJsonAsync($"{ApiBase}/{id}", book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // -------------------------------------------------------
-        // DELETE — Supprimer un livre
-        // -------------------------------------------------------
-        /// <summary>Supprime un livre par son ID.</summary>
-        public async Task<bool> DeleteBookAsync(int id)
-        {
-            try
-            {
-                var response = await _http.DeleteAsync($"{ApiBase}/{id}");
-                return response.IsSuccessStatusCode;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        // -------------------------------------------------------
-        // TOGGLE — Changer la disponibilité
-        // -------------------------------------------------------
-        /// <summary>Inverse la disponibilité d'un livre.</summary>
-        public async Task<Book?> ToggleAvailabilityAsync(int id)
-        {
-            try
-            {
-                var response = await _http.PatchAsync($"{ApiBase}/{id}/toggle", null);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        // -------------------------------------------------------
-        // EXTERNAL — Recherche OpenLibrary
-        // -------------------------------------------------------
-        /// <summary>Recherche des livres dans l'API externe OpenLibrary.</summary>
-        public async Task<List<Book>> SearchOpenLibraryAsync(string query)
-        {
-            try
-            {
-                var encoded = Uri.EscapeDataString(query);
-                var books = await _http.GetFromJsonAsync<List<Book>>($"api/openlibrary/search?q={encoded}&limit=10");
-                return books ?? new List<Book>();
-            }
-            catch
-            {
-                return new List<Book>();
-            }
-        }
-
-        /// <summary>Importe un livre depuis OpenLibrary dans la base locale.</summary>
-        public async Task<Book?> ImportFromOpenLibraryAsync(Book book)
-        {
-            try
-            {
-                var response = await _http.PostAsJsonAsync("api/openlibrary/import", book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
-            }
-            catch
-            {
-                return null;
-            }
-        }
+        var books = await BookService.GetAllBooksAsync();
+        totalBooks = books.Count;
+        availableBooks = books.Count(b => b.IsAvailable);
+        borrowedBooks = books.Count(b => !b.IsAvailable);
+        isLoading = false;
     }
 }

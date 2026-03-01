@@ -45,3 +45,4 @@ C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Web\obj\Debug\net9.0\refin
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Web\obj\Debug\net9.0\Library.Web.pdb
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Web\obj\Debug\net9.0\Library.Web.genruntimeconfig.cache
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Web\obj\Debug\net9.0\ref\Library.Web.dll
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.Web\obj\Debug\net9.0\compressed\tf4w5ihcdl-z6e8ckpepy.gz
