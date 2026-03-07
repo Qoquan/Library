@@ -77,7 +77,9 @@ namespace Library.API.Services
         {
             // On s'assure que la date de création est définie
             book.CreatedAt = DateTime.UtcNow;
-            book.Source = "local";
+            // Préserve la source si déjà définie (ex: "openlibrary"), sinon "local"
+            if (string.IsNullOrWhiteSpace(book.Source))
+                book.Source = "local";
 
             _context.Books.Add(book);
             await _context.SaveChangesAsync();

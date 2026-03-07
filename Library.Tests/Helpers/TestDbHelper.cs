@@ -64,7 +64,6 @@ namespace Library.Tests.Helpers
         {
             new Book
             {
-                Id = 1,
                 Title = "Le Petit Prince",
                 Author = "Antoine de Saint-Exupéry",
                 ISBN = "978-2-07-040850-4",
@@ -76,7 +75,6 @@ namespace Library.Tests.Helpers
             },
             new Book
             {
-                Id = 2,
                 Title = "1984",
                 Author = "George Orwell",
                 ISBN = "978-2-07-036822-8",
@@ -88,7 +86,6 @@ namespace Library.Tests.Helpers
             },
             new Book
             {
-                Id = 3,
                 Title = "Dune",
                 Author = "Frank Herbert",
                 ISBN = "978-2-07-040850-5",
@@ -100,7 +97,6 @@ namespace Library.Tests.Helpers
             },
             new Book
             {
-                Id = 4,
                 Title = "Harry Potter à l'école des sorciers",
                 Author = "J.K. Rowling",
                 PublishedYear = 1997,

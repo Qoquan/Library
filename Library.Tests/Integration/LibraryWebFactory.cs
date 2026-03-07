@@ -1,11 +1,7 @@
 // =============================================================
 // Fichier : Library.Tests/Integration/LibraryWebFactory.cs
 // Rôle    : Fabrique de serveur de test pour les tests d'intégration.
-//           Lance une vraie instance de Library.API en mémoire,
-//           remplace SQLite par InMemory, désactive OpenLibrary réel.
-//
-// La WebApplicationFactory d'ASP.NET Core démarre l'application
-// complète (middlewares, DI, routes) dans le processus de test.
+//           Remplace SQLite par InMemory pour les tests.
 // =============================================================
 
 using Microsoft.AspNetCore.Hosting;
@@ -17,20 +13,8 @@ using Library.Tests.Helpers;
 
 namespace Library.Tests.Integration
 {
-    /// <summary>
-    /// Fabrique qui configure Library.API pour les tests d'intégration.
-    /// Elle remplace :
-    ///   - SQLite → EF Core InMemory (rapide, sans fichier)
-    ///   - Les données sont seedées via TestDbHelper
-    ///
-    /// Utilisation :
-    ///   var factory = new LibraryWebFactory();
-    ///   var client = factory.CreateClient();
-    ///   var response = await client.GetAsync("/api/books");
-    /// </summary>
     public class LibraryWebFactory : WebApplicationFactory<Program>
     {
-        // Nom unique de la BD InMemory pour cette instance de factory
         private readonly string _dbName = $"IntegrationTest_{Guid.NewGuid()}";
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -38,53 +22,64 @@ namespace Library.Tests.Integration
             builder.ConfigureServices(services =>
             {
                 // -------------------------------------------------------
-                // 1. Supprimer la configuration SQLite existante
+                // ÉTAPE 1 — Supprimer ABSOLUMENT TOUT ce qui touche à EF Core
+                // On filtre par FullName pour attraper les services internes
                 // -------------------------------------------------------
-                var descriptor = services.SingleOrDefault(d =>
-                    d.ServiceType == typeof(DbContextOptions<LibraryDbContext>));
+                var toRemove = services
+                    .Where(d =>
+                        d.ServiceType == typeof(DbContextOptions<LibraryDbContext>) ||
+                        d.ServiceType == typeof(DbContextOptions) ||
+                        d.ServiceType == typeof(LibraryDbContext) ||
+                        (d.ServiceType.FullName != null && (
+                            d.ServiceType.FullName.Contains("EntityFrameworkCore") ||
+                            d.ServiceType.FullName.Contains("Sqlite") ||
+                            d.ServiceType.FullName.Contains("DbContext")
+                        )) ||
+                        (d.ImplementationType != null && d.ImplementationType.FullName != null && (
+                            d.ImplementationType.FullName.Contains("EntityFrameworkCore") ||
+                            d.ImplementationType.FullName.Contains("Sqlite") ||
+                            d.ImplementationType.FullName.Contains("DbContext")
+                        ))
+                    )
+                    .ToList();
 
-                if (descriptor != null)
+                foreach (var descriptor in toRemove)
                     services.Remove(descriptor);
 
                 // -------------------------------------------------------
-                // 2. Remplacer par EF Core InMemory
+                // ÉTAPE 2 — Enregistrer EF Core avec InMemory uniquement
                 // -------------------------------------------------------
                 services.AddDbContext<LibraryDbContext>(options =>
                     options.UseInMemoryDatabase(_dbName));
 
                 // -------------------------------------------------------
-                // 3. Seeder des données de test dans la BD
+                // ÉTAPE 3 — Seeder la base InMemory avec des données de test
                 // -------------------------------------------------------
                 var sp = services.BuildServiceProvider();
                 using var scope = sp.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
-
                 db.Database.EnsureCreated();
 
-                // Insérer des livres de démonstration pour les tests
                 if (!db.Books.Any())
                 {
-                    var sampleBooks = TestDbHelper.GetSampleBooks();
-                    // Reset les IDs pour que EF les génère proprement
-                    foreach (var book in sampleBooks)
+                    foreach (var book in TestDbHelper.GetSampleBooks())
                     {
                         db.Books.Add(new Library.Shared.Models.Book
                         {
-                            Title = book.Title,
-                            Author = book.Author,
-                            ISBN = book.ISBN,
+                            Title        = book.Title,
+                            Author       = book.Author,
+                            ISBN         = book.ISBN,
                             PublishedYear = book.PublishedYear,
-                            Genre = book.Genre,
-                            IsAvailable = book.IsAvailable,
-                            Source = book.Source,
-                            CreatedAt = book.CreatedAt
+                            Genre        = book.Genre,
+                            IsAvailable  = book.IsAvailable,
+                            Source       = book.Source,
+                            CreatedAt    = book.CreatedAt
                         });
                     }
                     db.SaveChanges();
                 }
             });
 
-            // Utiliser l'environnement "Testing"
             builder.UseEnvironment("Testing");
         }
     }
