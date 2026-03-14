@@ -147,3 +147,4 @@ C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.API\obj\Debug\net9.0\refin
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.API\obj\Debug\net9.0\Library.API.pdb
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.API\obj\Debug\net9.0\Library.API.genruntimeconfig.cache
 C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.API\obj\Debug\net9.0\ref\Library.API.dll
+C:\Users\boula\Desktop\Loïc\bac\Algo\Library\Library.API\obj\Debug\net9.0\swae.build.ex.cache
