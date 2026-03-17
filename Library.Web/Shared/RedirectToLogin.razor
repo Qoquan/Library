@@ -1,0 +1,17 @@
+@* =============================================================
+   Fichier : Library.Web/Shared/RedirectToLogin.razor
+   Rôle    : Composant de garde. Si l'utilisateur n'est pas
+             connecté, redirige vers /login.
+             Utilisé dans toutes les pages protégées.
+   ============================================================= *@
+
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+@code {
+    protected override void OnInitialized()
+    {
+        if (!AuthService.IsLoggedIn)
+            Nav.NavigateTo("/login", forceLoad: false);
+    }
+}

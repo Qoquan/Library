@@ -1,0 +1,122 @@
+@* =============================================================
+   Fichier : Library.Web/Pages/Register.razor
+   Rôle    : Page de création de compte.
+   Route   : /register
+   ============================================================= *@
+
+@page "/register"
+@inject AuthService AuthService
+@inject NavigationManager Nav
+
+<PageTitle>Créer un compte — Library</PageTitle>
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+
+        <div class="text-center mb-4">
+            <i class="bi bi-book-half text-success" style="font-size: 3rem;"></i>
+            <h2 class="mt-2 fw-bold">Library</h2>
+            <p class="text-muted">Créez votre bibliothèque personnelle</p>
+        </div>
+
+        <div class="card border-0 shadow">
+            <div class="card-body p-4">
+                <h4 class="card-title mb-4">
+                    <i class="bi bi-person-plus me-2 text-success"></i>Créer un compte
+                </h4>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nom d'utilisateur</label>
+                    <input class="form-control" placeholder="Minimum 3 caractères"
+                           @bind="username" @onkeyup="OnKeyUp" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Mot de passe</label>
+                    <input type="password" class="form-control" placeholder="Minimum 4 caractères"
+                           @bind="password" @onkeyup="OnKeyUp" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Confirmer le mot de passe</label>
+                    <input type="password" class="form-control" placeholder="Répétez le mot de passe"
+                           @bind="confirmPassword" @onkeyup="OnKeyUp" />
+                </div>
+
+                <button class="btn btn-success w-100" @onclick="DoRegister" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2"></span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-person-check me-2"></i>
+                    }
+                    Créer mon compte
+                </button>
+
+                <hr class="my-3" />
+
+                <p class="text-center text-muted mb-0">
+                    Déjà un compte ?
+                    <a href="/login" class="text-primary fw-semibold">Se connecter</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string username = "";
+    private string password = "";
+    private string confirmPassword = "";
+    private string errorMessage = "";
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        if (AuthService.IsLoggedIn)
+            Nav.NavigateTo("/");
+    }
+
+    private async Task OnKeyUp(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await DoRegister();
+    }
+
+    private async Task DoRegister()
+    {
+        if (string.IsNullOrWhiteSpace(username) ||
+            string.IsNullOrWhiteSpace(password) ||
+            string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            errorMessage = "Veuillez remplir tous les champs.";
+            return;
+        }
+
+        if (password != confirmPassword)
+        {
+            errorMessage = "Les mots de passe ne correspondent pas.";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+
+        var result = await AuthService.RegisterAsync(username, password);
+
+        isLoading = false;
+
+        if (result.Success)
+            Nav.NavigateTo("/");
+        else
+            errorMessage = result.Message;
+    }
+}
