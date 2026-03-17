@@ -1,10 +1,3 @@
-// =============================================================
-// Fichier : Library.Web/Program.cs
-// Rôle    : Point d'entrée du projet Blazor Server.
-//           Enregistre AuthService comme Scoped (une instance
-//           par connexion utilisateur).
-// =============================================================
-
 using Library.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,21 +7,25 @@ builder.Services.AddServerSideBlazor();
 
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5000";
 
-// AuthService : Scoped = une instance par circuit Blazor (par onglet)
-builder.Services.AddScoped<AuthService>();
-
-// BookApiService dépend de AuthService → aussi Scoped
-builder.Services.AddScoped<BookApiService>(sp =>
-{
-    var http = sp.GetRequiredService<IHttpClientFactory>()
-                 .CreateClient("LibraryAPI");
-    var auth = sp.GetRequiredService<AuthService>();
-    return new BookApiService(http, auth);
-});
-
+// Client HTTP nommé pointant vers l'API
 builder.Services.AddHttpClient("LibraryAPI", client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
+});
+
+// AuthService reçoit un HttpClient dédié
+builder.Services.AddScoped<AuthService>(sp =>
+{
+    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("LibraryAPI");
+    return new AuthService(http);
+});
+
+// BookApiService dépend de AuthService
+builder.Services.AddScoped<BookApiService>(sp =>
+{
+    var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient("LibraryAPI");
+    var auth = sp.GetRequiredService<AuthService>();
+    return new BookApiService(http, auth);
 });
 
 var app = builder.Build();

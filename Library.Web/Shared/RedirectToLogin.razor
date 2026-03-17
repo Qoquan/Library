@@ -1,17 +1,17 @@
 @* =============================================================
    Fichier : Library.Web/Shared/RedirectToLogin.razor
-   Rôle    : Composant de garde. Si l'utilisateur n'est pas
-             connecté, redirige vers /login.
-             Utilisé dans toutes les pages protégées.
+   Rôle    : Redirige vers /login si l'utilisateur n'est pas
+             connecté. Utilise OnAfterRender pour que la
+             navigation fonctionne correctement dans Blazor Server.
    ============================================================= *@
 
 @inject AuthService AuthService
 @inject NavigationManager Nav
 
 @code {
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        if (!AuthService.IsLoggedIn)
+        if (firstRender && !AuthService.IsLoggedIn)
             Nav.NavigateTo("/login", forceLoad: false);
     }
 }
