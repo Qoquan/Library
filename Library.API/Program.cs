@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using Library.API.Data;
 using Library.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,22 +6,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<LibraryDbContext>(options =>
-    options.UseSqlite("Data Source=library.db"));
+// Singletons en mémoire (pas de base de données)
+builder.Services.AddSingleton<IUserStore, UserStore>();
+builder.Services.AddSingleton<IUserBookStore, UserBookStore>();
 
-builder.Services.AddScoped<IBookService, BookService>();
+// HttpClient pour OpenLibrary
 builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>();
 
 builder.Services.AddCors(options =>
     options.AddPolicy("All", p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
 var app = builder.Build();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
-    db.Database.EnsureCreated();
-}
 
 app.UseSwagger();
 app.UseSwaggerUI();

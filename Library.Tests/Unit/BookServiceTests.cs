@@ -1,452 +1,211 @@
 // =============================================================
 // Fichier : Library.Tests/Unit/BookServiceTests.cs
-// Rôle    : Tests UNITAIRES du service BookService.
-//           Teste chaque méthode de façon isolée (InMemory DB).
-//           AA2 — Critère 1 : Définir les scénarios de test
-//           AA2 — Critère 2 : Implémenter des tests unitaires
-//
-// Convention de nommage des tests :
-//   [Méthode]_[Condition]_[ResultatAttendu]
-//
-// Lancer les tests :
-//   cd Library.Tests && dotnet test
+// Rôle    : Tests unitaires pour UserBookStore.
+//           Remplace les tests de BookService (EF Core)
+//           maintenant que la logique est dans UserBookStore.
 // =============================================================
 
 using FluentAssertions;
 using Library.API.Services;
-using Library.Tests.Helpers;
 using Library.Shared.Models;
 
 namespace Library.Tests.Unit
 {
-    /// <summary>
-    /// Suite de tests unitaires pour BookService.
-    ///
-    /// ORGANISATION EN RÉGIONS :
-    ///   - GetAll      : lecture de tous les livres
-    ///   - GetById     : lecture par identifiant
-    ///   - Search      : recherche par mots-clés
-    ///   - Create      : création d'un livre
-    ///   - Update      : modification d'un livre
-    ///   - Delete      : suppression d'un livre
-    ///   - Toggle      : changement de disponibilité
-    /// </summary>
-    public class BookServiceTests : IDisposable
+    public class BookServiceTests
     {
-        // -------------------------------------------------------
-        // Setup commun : contexte + service frais pour chaque test
-        // -------------------------------------------------------
-        private readonly Library.API.Data.LibraryDbContext _context;
-        private readonly BookService _service;
+        private readonly IUserBookStore _store;
+        private const int UserId = 1;
 
         public BookServiceTests()
         {
-            // BD InMemory isolée — chaque test repart de zéro
-            _context = TestDbHelper.CreateSeededContext();
-            _service = new BookService(_context);
+            _store = new UserBookStore();
         }
 
-        // ===============================================================
-        // RÉGION : GetAllAsync
-        // ===============================================================
-        #region GetAllAsync
+        private static Book MakeBook(string title = "Test", string author = "Auteur") =>
+            new Book { Title = title, Author = author, IsAvailable = true, Genre = "Fiction" };
 
-        [Fact(DisplayName = "GetAll — Retourne tous les livres seedés")]
-        public async Task GetAllAsync_WhenBooksExist_ReturnsAllBooks()
+        // ── GetAll ─────────────────────────────────────────────
+
+        [Fact(DisplayName = "GetAll — retourne liste vide si aucun livre")]
+        public void GetAll_Empty_ReturnsEmpty()
         {
-            // Act
-            var result = await _service.GetAllAsync();
-
-            // Assert
-            result.Should().NotBeNull();
-            result.Should().HaveCount(4); // 4 livres dans le seed
+            _store.GetAll(UserId).Should().BeEmpty();
         }
 
-        [Fact(DisplayName = "GetAll — Livres triés par titre alphabétiquement")]
-        public async Task GetAllAsync_ReturnsBooksSortedByTitle()
+        [Fact(DisplayName = "GetAll — retourne les livres de l'utilisateur")]
+        public void GetAll_AfterCreate_ReturnsBooks()
         {
-            // Act
-            var result = (await _service.GetAllAsync()).ToList();
-
-            // Assert — les titres doivent être en ordre alphabétique
-            result.Should().BeInAscendingOrder(b => b.Title);
+            _store.Create(UserId, MakeBook("Alpha"));
+            _store.Create(UserId, MakeBook("Beta"));
+            _store.GetAll(UserId).Should().HaveCount(2);
         }
 
-        [Fact(DisplayName = "GetAll — Retourne liste vide si aucun livre")]
-        public async Task GetAllAsync_WhenNoBooksExist_ReturnsEmptyList()
+        [Fact(DisplayName = "GetAll — triés par titre alphabétique")]
+        public void GetAll_ReturnsSortedByTitle()
         {
-            // Arrange — contexte complètement vide
-            using var emptyContext = TestDbHelper.CreateInMemoryContext();
-            var emptyService = new BookService(emptyContext);
-
-            // Act
-            var result = await emptyService.GetAllAsync();
-
-            // Assert
-            result.Should().BeEmpty();
+            _store.Create(UserId, MakeBook("Zorro"));
+            _store.Create(UserId, MakeBook("Alpha"));
+            var titles = _store.GetAll(UserId).Select(b => b.Title).ToList();
+            titles.Should().BeInAscendingOrder();
         }
 
-        #endregion
+        // ── GetById ────────────────────────────────────────────
 
-        // ===============================================================
-        // RÉGION : GetByIdAsync
-        // ===============================================================
-        #region GetByIdAsync
-
-        [Fact(DisplayName = "GetById — Retourne le bon livre pour un ID existant")]
-        public async Task GetByIdAsync_WhenBookExists_ReturnsCorrectBook()
+        [Fact(DisplayName = "GetById — retourne null si ID inexistant")]
+        public void GetById_NotFound_ReturnsNull()
         {
-            // Act
-            var result = await _service.GetByIdAsync(1);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Id.Should().Be(1);
-            result.Title.Should().Be("Le Petit Prince");
-            result.Author.Should().Be("Antoine de Saint-Exupéry");
+            _store.GetById(UserId, 9999).Should().BeNull();
         }
 
-        [Fact(DisplayName = "GetById — Retourne null pour un ID inexistant")]
-        public async Task GetByIdAsync_WhenBookDoesNotExist_ReturnsNull()
+        [Fact(DisplayName = "GetById — retourne le bon livre")]
+        public void GetById_Found_ReturnsBook()
         {
-            // Act
-            var result = await _service.GetByIdAsync(9999);
-
-            // Assert
-            result.Should().BeNull();
+            var created = _store.Create(UserId, MakeBook("Trouvé"));
+            _store.GetById(UserId, created.Id).Should().NotBeNull();
+            _store.GetById(UserId, created.Id)!.Title.Should().Be("Trouvé");
         }
 
-        [Fact(DisplayName = "GetById — Retourne null pour ID négatif")]
-        public async Task GetByIdAsync_WithNegativeId_ReturnsNull()
-        {
-            // Act
-            var result = await _service.GetByIdAsync(-1);
+        // ── Search ─────────────────────────────────────────────
 
-            // Assert
-            result.Should().BeNull();
+        [Fact(DisplayName = "Search — vide retourne tous les livres")]
+        public void Search_EmptyQuery_ReturnsAll()
+        {
+            _store.Create(UserId, MakeBook("Livre A"));
+            _store.Create(UserId, MakeBook("Livre B"));
+            _store.Search(UserId, "").Should().HaveCount(2);
         }
 
-        #endregion
-
-        // ===============================================================
-        // RÉGION : SearchAsync
-        // ===============================================================
-        #region SearchAsync
-
-        [Fact(DisplayName = "Search — Trouve un livre par titre (insensible à la casse)")]
-        public async Task SearchAsync_ByTitle_ReturnsMatchingBooks()
+        [Fact(DisplayName = "Search — filtre par titre (insensible casse)")]
+        public void Search_ByTitle_ReturnsMatch()
         {
-            // Act — recherche en minuscules
-            var result = (await _service.SearchAsync("petit prince")).ToList();
-
-            // Assert
-            result.Should().HaveCount(1);
-            result[0].Title.Should().Be("Le Petit Prince");
+            _store.Create(UserId, MakeBook("Dune"));
+            _store.Create(UserId, MakeBook("1984"));
+            _store.Search(UserId, "dune").Should().HaveCount(1);
         }
 
-        [Fact(DisplayName = "Search — Trouve des livres par auteur")]
-        public async Task SearchAsync_ByAuthor_ReturnsMatchingBooks()
+        [Fact(DisplayName = "Search — aucun résultat si pas de correspondance")]
+        public void Search_NoMatch_ReturnsEmpty()
         {
-            // Act
-            var result = (await _service.SearchAsync("orwell")).ToList();
-
-            // Assert
-            result.Should().HaveCount(1);
-            result[0].Author.Should().Be("George Orwell");
+            _store.Create(UserId, MakeBook("Dune"));
+            _store.Search(UserId, "zzzzz").Should().BeEmpty();
         }
 
-        [Fact(DisplayName = "Search — Trouve des livres par genre")]
-        public async Task SearchAsync_ByGenre_ReturnsMatchingBooks()
+        // ── Create ─────────────────────────────────────────────
+
+        [Fact(DisplayName = "Create — attribue un ID > 0")]
+        public void Create_AssignsPositiveId()
         {
-            // Act
-            var result = (await _service.SearchAsync("dystopie")).ToList();
-
-            // Assert
-            result.Should().HaveCount(1);
-            result[0].Genre.Should().Be("Dystopie");
-        }
-
-        [Fact(DisplayName = "Search — Retourne tous les livres si requête vide")]
-        public async Task SearchAsync_WithEmptyQuery_ReturnsAllBooks()
-        {
-            // Act
-            var result = await _service.SearchAsync("");
-
-            // Assert
-            result.Should().HaveCount(4);
-        }
-
-        [Fact(DisplayName = "Search — Retourne liste vide si aucun résultat")]
-        public async Task SearchAsync_WithUnknownQuery_ReturnsEmptyList()
-        {
-            // Act
-            var result = await _service.SearchAsync("zzz_inexistant_zzz");
-
-            // Assert
-            result.Should().BeEmpty();
-        }
-
-        [Fact(DisplayName = "Search — Trouve par ISBN")]
-        public async Task SearchAsync_ByISBN_ReturnsMatchingBook()
-        {
-            // Act
-            var result = (await _service.SearchAsync("978-2-07-040850-4")).ToList();
-
-            // Assert
-            result.Should().HaveCount(1);
-            result[0].Title.Should().Be("Le Petit Prince");
-        }
-
-        #endregion
-
-        // ===============================================================
-        // RÉGION : CreateAsync
-        // ===============================================================
-        #region CreateAsync
-
-        [Fact(DisplayName = "Create — Crée un livre et lui assigne un ID")]
-        public async Task CreateAsync_WithValidBook_AssignsIdAndReturnsBook()
-        {
-            // Arrange
-            var newBook = TestDbHelper.CreateValidBook("Fondation", "Isaac Asimov");
-
-            // Act
-            var created = await _service.CreateAsync(newBook);
-
-            // Assert
-            created.Should().NotBeNull();
+            var created = _store.Create(UserId, MakeBook());
             created.Id.Should().BeGreaterThan(0);
-            created.Title.Should().Be("Fondation");
-            created.Author.Should().Be("Isaac Asimov");
         }
 
-        [Fact(DisplayName = "Create — La source est forcée à 'local'")]
-        public async Task CreateAsync_AlwaysSetsSourceToLocal()
+        [Fact(DisplayName = "Create — définit CreatedAt automatiquement")]
+        public void Create_SetsCreatedAt()
         {
-            // Arrange — on essaie de mettre une autre source
-            var book = TestDbHelper.CreateValidBook();
-            book.Source = "tentative_externe";
+            var before = DateTime.UtcNow.AddSeconds(-1);
+            var created = _store.Create(UserId, MakeBook());
+            created.CreatedAt.Should().BeAfter(before);
+        }
 
-            // Act
-            var created = await _service.CreateAsync(book);
-
-            // Assert
+        [Fact(DisplayName = "Create — source vide devient 'local'")]
+        public void Create_EmptySource_SetsLocal()
+        {
+            var book = MakeBook();
+            book.Source = "";
+            var created = _store.Create(UserId, book);
             created.Source.Should().Be("local");
         }
 
-        [Fact(DisplayName = "Create — La date de création est définie automatiquement")]
-        public async Task CreateAsync_SetsCreatedAtAutomatically()
+        [Fact(DisplayName = "Create — source 'openlibrary' est préservée")]
+        public void Create_OpenlibrarySource_IsPreserved()
         {
-            // Arrange
-            var book = TestDbHelper.CreateValidBook();
-            var beforeCreate = DateTime.UtcNow.AddSeconds(-1);
-
-            // Act
-            var created = await _service.CreateAsync(book);
-
-            // Assert
-            created.CreatedAt.Should().BeAfter(beforeCreate);
-            created.CreatedAt.Should().BeBefore(DateTime.UtcNow.AddSeconds(1));
+            var book = MakeBook();
+            book.Source = "openlibrary";
+            var created = _store.Create(UserId, book);
+            created.Source.Should().Be("openlibrary");
         }
 
-        [Fact(DisplayName = "Create — Le livre est bien persisté en base")]
-        public async Task CreateAsync_PersistsBookInDatabase()
+        // ── Update ─────────────────────────────────────────────
+
+        [Fact(DisplayName = "Update — retourne null si livre inexistant")]
+        public void Update_NotFound_ReturnsNull()
         {
-            // Arrange
-            var book = TestDbHelper.CreateValidBook("Neuromancer");
-
-            // Act
-            var created = await _service.CreateAsync(book);
-
-            // Assert — vérifie via GetById que le livre existe vraiment
-            var fetched = await _service.GetByIdAsync(created.Id);
-            fetched.Should().NotBeNull();
-            fetched!.Title.Should().Be("Neuromancer");
+            _store.Update(UserId, 9999, MakeBook()).Should().BeNull();
         }
 
-        #endregion
-
-        // ===============================================================
-        // RÉGION : UpdateAsync
-        // ===============================================================
-        #region UpdateAsync
-
-        [Fact(DisplayName = "Update — Met à jour le titre et le genre")]
-        public async Task UpdateAsync_WithValidData_UpdatesBook()
+        [Fact(DisplayName = "Update — modifie les champs correctement")]
+        public void Update_ModifiesFields()
         {
-            // Arrange
-            var updatedData = new Book
-            {
-                Title = "Nouveau Titre",
-                Author = "Antoine de Saint-Exupéry", // auteur inchangé
-                Genre = "Philosophie",
-                IsAvailable = true
-            };
-
-            // Act — mise à jour du livre ID=1
-            var result = await _service.UpdateAsync(1, updatedData);
-
-            // Assert
-            result.Should().NotBeNull();
-            result!.Title.Should().Be("Nouveau Titre");
-            result.Genre.Should().Be("Philosophie");
+            var created = _store.Create(UserId, MakeBook("Avant"));
+            var updated = _store.Update(UserId, created.Id, MakeBook("Après"));
+            updated!.Title.Should().Be("Après");
         }
 
-        [Fact(DisplayName = "Update — L'ID n'est pas modifié lors de la mise à jour")]
-        public async Task UpdateAsync_PreservesOriginalId()
+        [Fact(DisplayName = "Update — ne change pas l'ID ni CreatedAt")]
+        public void Update_PreservesIdAndCreatedAt()
         {
-            // Arrange
-            var updatedData = new Book { Title = "Titre MAJ", Author = "Auteur MAJ" };
-
-            // Act
-            var result = await _service.UpdateAsync(1, updatedData);
-
-            // Assert
-            result!.Id.Should().Be(1); // L'ID reste 1
+            var created = _store.Create(UserId, MakeBook());
+            var originalDate = created.CreatedAt;
+            var updated = _store.Update(UserId, created.Id, MakeBook("Nouveau titre"));
+            updated!.Id.Should().Be(created.Id);
+            updated.CreatedAt.Should().Be(originalDate);
         }
 
-        [Fact(DisplayName = "Update — Retourne null si livre inexistant")]
-        public async Task UpdateAsync_WhenBookDoesNotExist_ReturnsNull()
-        {
-            // Act
-            var result = await _service.UpdateAsync(9999, new Book
-            {
-                Title = "Fantôme",
-                Author = "Fantôme"
-            });
+        // ── Delete ─────────────────────────────────────────────
 
-            // Assert
-            result.Should().BeNull();
+        [Fact(DisplayName = "Delete — retourne false si livre inexistant")]
+        public void Delete_NotFound_ReturnsFalse()
+        {
+            _store.Delete(UserId, 9999).Should().BeFalse();
         }
 
-        [Fact(DisplayName = "Update — La modification est persistée en base")]
-        public async Task UpdateAsync_ChangeIsPersisted()
+        [Fact(DisplayName = "Delete — retourne true et supprime le livre")]
+        public void Delete_Found_ReturnsTrueAndRemoves()
         {
-            // Arrange
-            var updatedData = new Book { Title = "Titre Persisté", Author = "George Orwell" };
-
-            // Act
-            await _service.UpdateAsync(2, updatedData);
-
-            // Assert — relit depuis la BD
-            var fetched = await _service.GetByIdAsync(2);
-            fetched!.Title.Should().Be("Titre Persisté");
+            var created = _store.Create(UserId, MakeBook());
+            _store.Delete(UserId, created.Id).Should().BeTrue();
+            _store.GetById(UserId, created.Id).Should().BeNull();
         }
 
-        #endregion
+        // ── Toggle ─────────────────────────────────────────────
 
-        // ===============================================================
-        // RÉGION : DeleteAsync
-        // ===============================================================
-        #region DeleteAsync
-
-        [Fact(DisplayName = "Delete — Supprime le livre et retourne true")]
-        public async Task DeleteAsync_WhenBookExists_ReturnsTrueAndRemovesBook()
+        [Fact(DisplayName = "Toggle — inverse la disponibilité")]
+        public void Toggle_InvertsAvailability()
         {
-            // Act
-            var result = await _service.DeleteAsync(1);
-
-            // Assert
-            result.Should().BeTrue();
-
-            // Vérifie que le livre n'existe plus
-            var deleted = await _service.GetByIdAsync(1);
-            deleted.Should().BeNull();
+            var created = _store.Create(UserId, MakeBook());
+            var original = created.IsAvailable;
+            var toggled = _store.ToggleAvailability(UserId, created.Id);
+            toggled!.IsAvailable.Should().Be(!original);
         }
 
-        [Fact(DisplayName = "Delete — Retourne false si livre inexistant")]
-        public async Task DeleteAsync_WhenBookDoesNotExist_ReturnsFalse()
+        [Fact(DisplayName = "Toggle — retourne null si livre inexistant")]
+        public void Toggle_NotFound_ReturnsNull()
         {
-            // Act
-            var result = await _service.DeleteAsync(9999);
-
-            // Assert
-            result.Should().BeFalse();
+            _store.ToggleAvailability(UserId, 9999).Should().BeNull();
         }
 
-        [Fact(DisplayName = "Delete — Les autres livres ne sont pas affectés")]
-        public async Task DeleteAsync_DoesNotAffectOtherBooks()
+        // ── Isolation par utilisateur ──────────────────────────
+
+        [Fact(DisplayName = "Isolation — deux users ont des bibliothèques séparées")]
+        public void TwoUsers_HaveSeparateLibraries()
         {
-            // Arrange — compte avant suppression
-            var countBefore = (await _service.GetAllAsync()).Count();
+            _store.Create(1, MakeBook("Livre User 1"));
+            _store.Create(2, MakeBook("Livre User 2"));
 
-            // Act
-            await _service.DeleteAsync(1);
-
-            // Assert — il reste countBefore - 1 livres
-            var countAfter = (await _service.GetAllAsync()).Count();
-            countAfter.Should().Be(countBefore - 1);
+            _store.GetAll(1).Should().OnlyContain(b => b.Title == "Livre User 1");
+            _store.GetAll(2).Should().OnlyContain(b => b.Title == "Livre User 2");
         }
 
-        #endregion
-
-        // ===============================================================
-        // RÉGION : ToggleAvailabilityAsync
-        // ===============================================================
-        #region ToggleAvailabilityAsync
-
-        [Fact(DisplayName = "Toggle — Passe disponible → indisponible")]
-        public async Task ToggleAvailabilityAsync_WhenAvailable_SetsUnavailable()
+        [Fact(DisplayName = "Isolation — delete user 1 n'affecte pas user 2")]
+        public void Delete_User1_DoesNotAffectUser2()
         {
-            // Arrange — livre ID=1 est disponible (IsAvailable = true)
-            var book = await _service.GetByIdAsync(1);
-            book!.IsAvailable.Should().BeTrue();
+            var b1 = _store.Create(1, MakeBook("Livre Commun"));
+            _store.Create(2, MakeBook("Livre Commun"));
 
-            // Act
-            var toggled = await _service.ToggleAvailabilityAsync(1);
+            _store.Delete(1, b1.Id);
 
-            // Assert
-            toggled.Should().NotBeNull();
-            toggled!.IsAvailable.Should().BeFalse();
-        }
-
-        [Fact(DisplayName = "Toggle — Passe indisponible → disponible")]
-        public async Task ToggleAvailabilityAsync_WhenUnavailable_SetsAvailable()
-        {
-            // Arrange — livre ID=3 est indisponible (IsAvailable = false)
-            var book = await _service.GetByIdAsync(3);
-            book!.IsAvailable.Should().BeFalse();
-
-            // Act
-            var toggled = await _service.ToggleAvailabilityAsync(3);
-
-            // Assert
-            toggled!.IsAvailable.Should().BeTrue();
-        }
-
-        [Fact(DisplayName = "Toggle — Double toggle remet à l'état initial")]
-        public async Task ToggleAvailabilityAsync_DoubleToggle_RestoresOriginalState()
-        {
-            // Arrange
-            var original = await _service.GetByIdAsync(1);
-            var originalState = original!.IsAvailable;
-
-            // Act — deux toggles successifs
-            await _service.ToggleAvailabilityAsync(1);
-            var afterSecondToggle = await _service.ToggleAvailabilityAsync(1);
-
-            // Assert — revenu à l'état initial
-            afterSecondToggle!.IsAvailable.Should().Be(originalState);
-        }
-
-        [Fact(DisplayName = "Toggle — Retourne null si livre inexistant")]
-        public async Task ToggleAvailabilityAsync_WhenBookDoesNotExist_ReturnsNull()
-        {
-            // Act
-            var result = await _service.ToggleAvailabilityAsync(9999);
-
-            // Assert
-            result.Should().BeNull();
-        }
-
-        #endregion
-
-        // -------------------------------------------------------
-        // Cleanup : dispose du contexte après chaque test
-        // -------------------------------------------------------
-        public void Dispose()
-        {
-            _context.Dispose();
+            _store.GetAll(1).Should().BeEmpty();
+            _store.GetAll(2).Should().HaveCount(1);
         }
     }
 }

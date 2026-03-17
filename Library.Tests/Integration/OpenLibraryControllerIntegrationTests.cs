@@ -1,130 +1,95 @@
 // =============================================================
 // Fichier : Library.Tests/Integration/OpenLibraryControllerIntegrationTests.cs
-// Rôle    : Tests d'intégration pour les endpoints /api/openlibrary.
-//           Teste le pipeline HTTP complet du contrôleur proxy.
-//           Note : les appels vers OpenLibrary.org sont mockés via
-//           la factory (pas de vraie connexion internet).
 // =============================================================
 
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using FluentAssertions;
 using Library.Shared.Models;
 
 namespace Library.Tests.Integration
 {
-    /// <summary>
-    /// Tests d'intégration pour les endpoints OpenLibrary.
-    /// Vérifie que les routes, validations et comportements
-    /// du contrôleur proxy fonctionnent correctement.
-    /// </summary>
     public class OpenLibraryControllerIntegrationTests
-        : IClassFixture<LibraryWebFactory>, IDisposable
+        : IClassFixture<LibraryWebFactory>
     {
         private readonly HttpClient _client;
+        private readonly LibraryWebFactory _factory;
+        private const int TestUserId = 888;
+
+        private static readonly JsonSerializerOptions _jsonOptions = new()
+        { PropertyNameCaseInsensitive = true };
 
         public OpenLibraryControllerIntegrationTests(LibraryWebFactory factory)
         {
+            _factory = factory;
             _client = factory.CreateClient();
+            _client.DefaultRequestHeaders.Add("X-User-Id", TestUserId.ToString());
         }
 
-        // -------------------------------------------------------
-        // Test 1 : Recherche sans paramètre → 400
-        // -------------------------------------------------------
         [Fact(DisplayName = "GET /api/openlibrary/search sans q → 400 Bad Request")]
-        public async Task SearchExternal_WithoutQuery_Returns400()
+        public async Task Search_WithoutQuery_Returns400()
         {
-            // Act
             var response = await _client.GetAsync("/api/openlibrary/search");
-
-            // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         [Fact(DisplayName = "GET /api/openlibrary/search?q= (vide) → 400 Bad Request")]
-        public async Task SearchExternal_WithEmptyQuery_Returns400()
+        public async Task Search_WithEmptyQuery_Returns400()
         {
-            // Act
             var response = await _client.GetAsync("/api/openlibrary/search?q=");
-
-            // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
-        // -------------------------------------------------------
-        // Test 2 : Import valide → 201 Created
-        // -------------------------------------------------------
         [Fact(DisplayName = "POST /api/openlibrary/import livre valide → 201 Created")]
         public async Task ImportBook_WithValidBook_Returns201()
         {
-            // Arrange
             var book = new Book
             {
-                Title = "Livre Importé depuis OpenLibrary",
-                Author = "Auteur Externe",
-                PublishedYear = 2020,
-                Source = "openlibrary"
+                Title = "Dune Importé",
+                Author = "Frank Herbert",
+                Source = "openlibrary",
+                IsAvailable = true
             };
-
-            // Act
             var response = await _client.PostAsJsonAsync("/api/openlibrary/import", book);
-
-            // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
-
-            var imported = await response.Content.ReadFromJsonAsync<Book>(
-                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-            imported!.Title.Should().Be("Livre Importé depuis OpenLibrary");
-            imported.Source.Should().Be("openlibrary");
-            imported.Id.Should().BeGreaterThan(0);
+            var imported = await response.Content.ReadFromJsonAsync<Book>(_jsonOptions);
+            imported!.Source.Should().Be("openlibrary");
+            imported.Title.Should().Be("Dune Importé");
         }
 
-        // -------------------------------------------------------
-        // Test 3 : Import sans titre → 400
-        // -------------------------------------------------------
         [Fact(DisplayName = "POST /api/openlibrary/import sans titre → 400 Bad Request")]
-        public async Task ImportBook_WithEmptyTitle_Returns400()
+        public async Task ImportBook_WithoutTitle_Returns400()
         {
-            // Arrange
-            var invalidBook = new { Author = "Auteur" }; // pas de titre
-
-            // Act
-            var response = await _client.PostAsJsonAsync("/api/openlibrary/import", invalidBook);
-
-            // Assert
+            var book = new Book { Title = "", Author = "Auteur" };
+            var response = await _client.PostAsJsonAsync("/api/openlibrary/import", book);
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
-        // -------------------------------------------------------
-        // Test 4 : Le livre importé est récupérable via /api/books
-        // -------------------------------------------------------
         [Fact(DisplayName = "POST import → livre disponible dans /api/books")]
         public async Task ImportBook_IsRetrievableViaBooks()
         {
-            // Arrange
             var book = new Book
             {
-                Title = "Test Récupération Import",
+                Title = $"Importé_{Guid.NewGuid()}",
                 Author = "Auteur Import",
-                Source = "openlibrary"
+                Source = "openlibrary",
+                IsAvailable = true
             };
-
-            // Act — importer
-            var importResp = await _client.PostAsJsonAsync("/api/openlibrary/import", book);
-            var jsonOptions = new System.Text.Json.JsonSerializerOptions
-            { PropertyNameCaseInsensitive = true };
-            var imported = await importResp.Content.ReadFromJsonAsync<Book>(jsonOptions);
-
-            // Assert — récupérable via l'endpoint books
-            var getResp = await _client.GetAsync($"/api/books/{imported!.Id}");
-            getResp.StatusCode.Should().Be(HttpStatusCode.OK);
-
-            var fetched = await getResp.Content.ReadFromJsonAsync<Book>(jsonOptions);
-            fetched!.Title.Should().Be("Test Récupération Import");
-            fetched.Source.Should().Be("openlibrary");
+            await _client.PostAsJsonAsync("/api/openlibrary/import", book);
+            var books = await _client.GetFromJsonAsync<List<Book>>("/api/books", _jsonOptions);
+            var fetched = books!.FirstOrDefault(b => b.Title == book.Title);
+            fetched.Should().NotBeNull();
+            fetched!.Source.Should().Be("openlibrary");
         }
 
-        public void Dispose() => _client.Dispose();
+        [Fact(DisplayName = "POST /api/openlibrary/import sans header → 401")]
+        public async Task ImportBook_WithoutUserId_Returns401()
+        {
+            var client = _factory.CreateClient(); // pas de header
+            var book = new Book { Title = "Test", Author = "Auteur", IsAvailable = true };
+            var response = await client.PostAsJsonAsync("/api/openlibrary/import", book);
+            response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+        }
     }
 }

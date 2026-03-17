@@ -1,8 +1,8 @@
 // =============================================================
 // Fichier : Library.Web/Services/BookApiService.cs
-// Rôle    : Service HTTP appelant l'API interne depuis Blazor.
-//           Fait le lien entre les pages Blazor et l'API REST.
-//           POO : injection de HttpClient, encapsulation des appels.
+// Rôle    : Communique avec Library.API depuis Blazor.
+//           Envoie automatiquement le header X-User-Id pour
+//           que l'API sache quel utilisateur fait la requête.
 // =============================================================
 
 using System.Net.Http.Json;
@@ -10,184 +10,144 @@ using Library.Shared.Models;
 
 namespace Library.Web.Services
 {
-    /// <summary>
-    /// Service qui communique avec l'API interne Library.API.
-    /// Toutes les opérations CRUD passent par ce service.
-    /// Utilise HttpClient (injecté) pour les appels HTTP.
-    /// </summary>
     public class BookApiService
     {
-        // -------------------------------------------------------
-        // Dépendance injectée
-        // -------------------------------------------------------
         private readonly HttpClient _http;
+        private readonly AuthService _auth;
 
-        // URL de base de l'API (configurée dans appsettings.json)
-        private const string ApiBase = "api/books";
-
-        public BookApiService(HttpClient http)
+        public BookApiService(HttpClient http, AuthService auth)
         {
             _http = http;
+            _auth = auth;
         }
 
-        // -------------------------------------------------------
-        // READ — Récupérer tous les livres
-        // -------------------------------------------------------
-        /// <summary>Récupère tous les livres depuis l'API.</summary>
+        // ── Helper : ajoute X-User-Id à chaque requête ────────
+        private HttpRequestMessage WithUserId(HttpMethod method, string url)
+        {
+            var req = new HttpRequestMessage(method, url);
+            if (_auth.CurrentUser != null)
+                req.Headers.Add("X-User-Id", _auth.CurrentUser.Id.ToString());
+            return req;
+        }
+
+        // GET /api/books
         public async Task<List<Book>> GetAllBooksAsync()
         {
             try
             {
-                var books = await _http.GetFromJsonAsync<List<Book>>(ApiBase);
-                return books ?? new List<Book>();
+                var req = WithUserId(HttpMethod.Get, "api/books");
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return new();
+                return await resp.Content.ReadFromJsonAsync<List<Book>>() ?? new();
             }
-            catch (Exception ex)
-            {
-                Console.Error.WriteLine($"Erreur GetAllBooks: {ex.Message}");
-                return new List<Book>();
-            }
+            catch { return new(); }
         }
 
-        // -------------------------------------------------------
-        // READ — Récupérer un livre par ID
-        // -------------------------------------------------------
-        /// <summary>Récupère un livre par son ID.</summary>
+        // GET /api/books/{id}
         public async Task<Book?> GetBookByIdAsync(int id)
         {
             try
             {
-                return await _http.GetFromJsonAsync<Book>($"{ApiBase}/{id}");
+                var req = WithUserId(HttpMethod.Get, $"api/books/{id}");
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return null;
+                return await resp.Content.ReadFromJsonAsync<Book>();
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
-        // -------------------------------------------------------
-        // READ — Rechercher des livres
-        // -------------------------------------------------------
-        /// <summary>Recherche des livres par titre, auteur ou genre.</summary>
+        // GET /api/books/search?q=
         public async Task<List<Book>> SearchBooksAsync(string query)
         {
             try
             {
                 var encoded = Uri.EscapeDataString(query);
-                var books = await _http.GetFromJsonAsync<List<Book>>($"{ApiBase}/search?q={encoded}");
-                return books ?? new List<Book>();
+                var req = WithUserId(HttpMethod.Get, $"api/books/search?q={encoded}");
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return new();
+                return await resp.Content.ReadFromJsonAsync<List<Book>>() ?? new();
             }
-            catch
-            {
-                return new List<Book>();
-            }
+            catch { return new(); }
         }
 
-        // -------------------------------------------------------
-        // CREATE — Créer un livre
-        // -------------------------------------------------------
-        /// <summary>Crée un nouveau livre via l'API.</summary>
+        // POST /api/books
         public async Task<Book?> CreateBookAsync(Book book)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync(ApiBase, book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
+                var req = WithUserId(HttpMethod.Post, "api/books");
+                req.Content = JsonContent.Create(book);
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return null;
+                return await resp.Content.ReadFromJsonAsync<Book>();
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
-        // -------------------------------------------------------
-        // UPDATE — Mettre à jour un livre
-        // -------------------------------------------------------
-        /// <summary>Met à jour un livre existant.</summary>
+        // PUT /api/books/{id}
         public async Task<Book?> UpdateBookAsync(int id, Book book)
         {
             try
             {
-                var response = await _http.PutAsJsonAsync($"{ApiBase}/{id}", book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
+                var req = WithUserId(HttpMethod.Put, $"api/books/{id}");
+                req.Content = JsonContent.Create(book);
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return null;
+                return await resp.Content.ReadFromJsonAsync<Book>();
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
-        // -------------------------------------------------------
-        // DELETE — Supprimer un livre
-        // -------------------------------------------------------
-        /// <summary>Supprime un livre par son ID.</summary>
+        // DELETE /api/books/{id}
         public async Task<bool> DeleteBookAsync(int id)
         {
             try
             {
-                var response = await _http.DeleteAsync($"{ApiBase}/{id}");
-                return response.IsSuccessStatusCode;
+                var req = WithUserId(HttpMethod.Delete, $"api/books/{id}");
+                var resp = await _http.SendAsync(req);
+                return resp.IsSuccessStatusCode;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
 
-        // -------------------------------------------------------
-        // TOGGLE — Changer la disponibilité
-        // -------------------------------------------------------
-        /// <summary>Inverse la disponibilité d'un livre.</summary>
+        // PATCH /api/books/{id}/toggle
         public async Task<Book?> ToggleAvailabilityAsync(int id)
         {
             try
             {
-                var response = await _http.PatchAsync($"{ApiBase}/{id}/toggle", null);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
+                var req = WithUserId(HttpMethod.Patch, $"api/books/{id}/toggle");
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return null;
+                return await resp.Content.ReadFromJsonAsync<Book>();
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
 
-        // -------------------------------------------------------
-        // EXTERNAL — Recherche OpenLibrary
-        // -------------------------------------------------------
-        /// <summary>Recherche des livres dans l'API externe OpenLibrary.</summary>
+        // GET /api/openlibrary/search?q=
         public async Task<List<Book>> SearchOpenLibraryAsync(string query)
         {
             try
             {
                 var encoded = Uri.EscapeDataString(query);
-                var books = await _http.GetFromJsonAsync<List<Book>>($"api/openlibrary/search?q={encoded}&limit=10");
-                return books ?? new List<Book>();
+                var books = await _http.GetFromJsonAsync<List<Book>>(
+                    $"api/openlibrary/search?q={encoded}&limit=10");
+                return books ?? new();
             }
-            catch
-            {
-                return new List<Book>();
-            }
+            catch { return new(); }
         }
 
-        /// <summary>Importe un livre depuis OpenLibrary dans la base locale.</summary>
+        // POST /api/openlibrary/import
         public async Task<Book?> ImportFromOpenLibraryAsync(Book book)
         {
             try
             {
-                var response = await _http.PostAsJsonAsync("api/openlibrary/import", book);
-                if (response.IsSuccessStatusCode)
-                    return await response.Content.ReadFromJsonAsync<Book>();
-                return null;
+                var req = WithUserId(HttpMethod.Post, "api/openlibrary/import");
+                req.Content = JsonContent.Create(book);
+                var resp = await _http.SendAsync(req);
+                if (!resp.IsSuccessStatusCode) return null;
+                return await resp.Content.ReadFromJsonAsync<Book>();
             }
-            catch
-            {
-                return null;
-            }
+            catch { return null; }
         }
     }
 }
